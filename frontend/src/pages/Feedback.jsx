@@ -1,32 +1,24 @@
 import { useState } from "react";
 import axios from "axios";
+import { Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-// Feature Flags — controls which feedback types are visible
-const FEEDBACK_TYPES = [
-    { key: "driver", label: "Driver", icon: "🚗", enabled: true },
-    { key: "trip", label: "Trip", icon: "📍", enabled: true },
-    { key: "app", label: "Mobile App", icon: "📱", enabled: true },
-    { key: "marshal", label: "Marshal", icon: "👮", enabled: true },
-];
-
 export default function Feedback() {
-    const [activeType, setActiveType] = useState("driver");
     const [driverId, setDriverId] = useState("");
     const [tripId, setTripId] = useState("");
     const [text, setText] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+    const [toast, setToast] = useState(null);
 
     const showToast = (type, msg) => {
         setToast({ type, msg });
-        setTimeout(() => setToast(null), 4000);
+        setTimeout(() => setToast(null), 5000);
     };
 
     const handleSubmit = async () => {
         if (!driverId.trim() || !tripId.trim() || !text.trim()) {
-            showToast("error", "Please fill in all fields.");
+            showToast("error", "Please ensure all details are filled in before submitting.");
             return;
         }
         setSubmitting(true);
@@ -35,78 +27,62 @@ export default function Feedback() {
                 driver_id: driverId.trim(),
                 trip_id: tripId.trim(),
                 text: text.trim(),
+                entity_type: "driver",
                 external_feedback_id: crypto.randomUUID(),
             });
 
             if (res.data.success) {
-                showToast("success", "✓ Feedback submitted successfully!");
+                showToast("success", "Feedback recorded. Our AI is analyzing it now.");
                 setText("");
             } else {
-                showToast("error", res.data.message || "Something went wrong.");
+                showToast("error", res.data.message || "An unexpected error occurred.");
             }
         } catch (err) {
             const detail = err?.response?.data?.detail;
-            showToast("error", detail || "Failed to submit feedback. Is the server running?");
+            showToast("error", detail || "Connection failed. Is the engine running?");
         } finally {
             setSubmitting(false);
         }
     };
 
-    const enabledTypes = FEEDBACK_TYPES.filter((t) => t.enabled);
-
     return (
-        <div>
+        <div style={{ maxWidth: 680 }}>
             <div className="page-header">
                 <h1>Submit Feedback</h1>
-                <p>Collect and analyze rider feedback for drivers, trips, and operations.</p>
+                <p>Share your experience with the driver. Your input is analyzed in real-time and contributes to fleet safety.</p>
             </div>
 
-            {/* Feedback Type Selector */}
-            <div className="segment-control">
-                {enabledTypes.map((type) => (
-                    <button
-                        key={type.key}
-                        className={`segment-btn ${activeType === type.key ? "active" : ""}`}
-                        onClick={() => setActiveType(type.key)}
-                    >
-                        {type.icon} {type.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="card" style={{ maxWidth: 680 }}>
+            <div className="card">
                 <div className="form-group">
-                    <label>Driver ID</label>
+                    <label>Driver Identifier</label>
                     <input
                         className="input"
-                        placeholder="e.g. drv_12345"
+                        placeholder="e.g. drv_9921"
                         value={driverId}
                         onChange={(e) => setDriverId(e.target.value)}
                     />
                 </div>
 
                 <div className="form-group">
-                    <label>Trip ID</label>
+                    <label>Trip Identifier</label>
                     <input
                         className="input"
-                        placeholder="e.g. trip_98765"
+                        placeholder="e.g. trip_8820"
                         value={tripId}
                         onChange={(e) => setTripId(e.target.value)}
                     />
                 </div>
 
                 <div className="form-group">
-                    <label>
-                        Feedback — <span style={{ textTransform: "capitalize" }}>{activeType}</span>
-                    </label>
+                    <label>Your Observation</label>
                     <textarea
                         className="textarea"
-                        placeholder={getPlaceholder(activeType)}
+                        placeholder="Describe the driver's conduct, professionalism, and overall experience during this trip..."
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                     />
-                    <div className="hint">
-                        Sentiment will be analyzed automatically. Negative scores trigger alerts.
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10 }}>
+                        Sentiment is analyzed automatically. Negative patterns trigger a supervisor alert.
                     </div>
                 </div>
 
@@ -114,27 +90,22 @@ export default function Feedback() {
                     className="btn btn-primary"
                     onClick={handleSubmit}
                     disabled={submitting}
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", marginTop: 8 }}
                 >
-                    {submitting ? <span className="spinner" /> : "🚀 Submit Feedback"}
+                    {submitting ? (
+                        <><Loader2 size={18} className="spin" /> Submitting...</>
+                    ) : (
+                        <><Send size={18} /> Submit Feedback</>
+                    )}
                 </button>
 
                 {toast && (
-                    <div className={`toast toast-${toast.type}`}>
+                    <div className={`toast toast-${toast.type}`} style={{ marginTop: 24 }}>
+                        {toast.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
                         {toast.msg}
                     </div>
                 )}
             </div>
         </div>
     );
-}
-
-function getPlaceholder(type) {
-    const map = {
-        driver: "Describe the driver's behaviour, professionalism, and overall experience...",
-        trip: "Describe the trip quality — route taken, ETAs, safety during the ride...",
-        app: "Share your experience using the mobile app — UI, speed, bugs, or crashes...",
-        marshal: "Describe the marshal's conduct, helpfulness, and safety protocols...",
-    };
-    return map[type] || "Write your feedback here...";
 }
