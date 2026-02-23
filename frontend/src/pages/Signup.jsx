@@ -58,17 +58,15 @@ export default function Signup() {
     if (success) {
         return (
             <div className="login-page">
-                <div className="login-glow login-glow-1" />
-                <div className="login-glow login-glow-2" />
                 <div className="login-card" style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-                        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(52, 211, 153, 0.1)", border: "1px solid rgba(52, 211, 153, 0.3)", display: "grid", placeItems: "center" }}>
-                            <CheckCircle2 size={28} color="var(--success)" />
+                        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.2)", display: "grid", placeItems: "center" }}>
+                            <CheckCircle2 size={26} color="var(--success)" />
                         </div>
                     </div>
-                    <h2 style={{ fontFamily: "Outfit", fontSize: 24, fontWeight: 700, marginBottom: 12 }}>You're registered!</h2>
-                    <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.6, marginBottom: 32 }}>
-                        Check your inbox and confirm your email. You'll have <strong>Employee access</strong> by default. Contact your admin for elevated permissions.
+                    <h2 style={{ fontFamily: "Bricolage Grotesque", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>You're registered!</h2>
+                    <p style={{ color: "var(--text-muted)", fontSize: 14, lineHeight: 1.65, marginBottom: 32 }}>
+                        Check your inbox and confirm your email. You'll have <strong style={{ color: "var(--text-secondary)" }}>Employee access</strong> by default. Contact your admin for elevated permissions.
                     </p>
                     <Link to="/login" className="btn btn-primary" style={{ display: "inline-flex", textDecoration: "none" }}>
                         Go to Sign In
@@ -80,9 +78,6 @@ export default function Signup() {
 
     return (
         <div className="login-page">
-            <div className="login-glow login-glow-1" />
-            <div className="login-glow login-glow-2" />
-
             <div className="login-card">
                 <div className="login-logo">
                     <div className="logo-icon">

@@ -36,15 +36,11 @@ export default function Login() {
 
     return (
         <div className="login-page">
-            {/* Ambient background glow */}
-            <div className="login-glow login-glow-1" />
-            <div className="login-glow login-glow-2" />
-
             <div className="login-card">
                 {/* Logo */}
                 <div className="login-logo">
                     <div className="logo-icon">
-                        <Zap size={24} color="white" fill="white" />
+                        <Zap size={22} color="white" fill="white" />
                     </div>
                     <div>
                         <div className="login-brand">SentimentIQ</div>
@@ -96,7 +92,7 @@ export default function Login() {
 
                     {error && (
                         <div className="login-error">
-                            <AlertCircle size={16} />
+                            <AlertCircle size={15} />
                             {error}
                         </div>
                     )}
@@ -108,7 +104,7 @@ export default function Login() {
                         style={{ width: "100%", marginTop: 8 }}
                     >
                         {loading ? (
-                            <span className="spinner-ring" style={{ width: 18, height: 18 }} />
+                            <span className="spinner-ring" style={{ width: 17, height: 17 }} />
                         ) : (
                             "Sign in"
                         )}
@@ -122,7 +118,7 @@ export default function Login() {
 
                 <div style={{ textAlign: "center", marginTop: 24, fontSize: 14, color: "var(--text-muted)" }}>
                     Don't have an account?{" "}
-                    <Link to="/signup" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}>
+                    <Link to="/signup" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
                         Create one
                     </Link>
                 </div>
