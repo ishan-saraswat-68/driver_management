@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import requests
 import os
 from app.repositories.driver_repository import DriverRepository
+from app.config import THRESHOLD, COOLDOWN_HOURS, SLACK_WEBHOOK_URL
 
 THRESHOLD = -0.5
 COOLDOWN_HOURS = 24
@@ -40,7 +41,8 @@ class AlertService:
     def send_alert(self, driver_id: str, score: float):
         try:
             if not SLACK_WEBHOOK:
-                print("⚠️ Slack webhook not configured")
+                from app.logger import logger
+                logger.warning("Slack webhook not configured")
                 return
 
             message = {
@@ -53,4 +55,4 @@ class AlertService:
                 print("Slack alert failed:", response.text)
 
         except Exception as e:
-            print("Error sending Slack alert:", e)
+            logger.error(f"Error sending Slack alert: {e}")
