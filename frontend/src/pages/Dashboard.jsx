@@ -10,25 +10,15 @@ import {
     Cell,
     ReferenceLine,
 } from "recharts";
-import {
-    Users,
-    BarChart3,
-    AlertTriangle,
-    History,
-    RefreshCw,
-    Search,
-    ChevronRight,
-    ArrowUpRight,
-    Loader2
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 const ALERT_THRESHOLD = 2.5;
 
 function ScoreColor(score) {
-    if (score >= 3.5) return "#34d399";
-    if (score <= 1.5) return "#f87171";
-    return "#fbbf24";
+    if (score >= 3.5) return "#000000"; // Black for good
+    if (score <= 1.5) return "#d4d4d8"; // Light grey for bad
+    return "#a1a1aa";                   // Mid grey for neutral
 }
 
 function ScoreBadge({ score }) {
@@ -82,7 +72,7 @@ export default function Dashboard() {
         try {
             const res = await axios.get(`${API_BASE}/drivers`);
             setDrivers(res.data.data || []);
-        } catch (err) {
+        } catch {
             setError("Connectivity issue detected. Please check your network.");
         } finally {
             setLoading(false);
@@ -120,8 +110,7 @@ export default function Dashboard() {
                     <p>Real-time sentiment monitoring and predictive fleet health metrics.</p>
                 </div>
                 <button className="btn btn-outline" onClick={fetchDrivers} style={{ padding: '10px 20px', fontSize: 14 }}>
-                    <RefreshCw size={16} className={loading ? "spin" : ""} />
-                    Sync Data
+                    {loading ? "Syncing..." : "Sync Data"}
                 </button>
             </div>
 
@@ -129,7 +118,6 @@ export default function Dashboard() {
                 <div className="stat-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div className="stat-label">Total Fleet</div>
-                        <Users size={16} color="var(--accent)" />
                     </div>
                     <div className="stat-value">{loading ? "—" : drivers.length}</div>
                     <div className="stat-sub">Active identifiers</div>
@@ -137,7 +125,6 @@ export default function Dashboard() {
                 <div className="stat-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div className="stat-label">Fleet Sentiment</div>
-                        <BarChart3 size={16} color="var(--accent2)" />
                     </div>
                     <div className="stat-value" style={{ color: ScoreColor(parseFloat(avgScore)) }}>
                         {loading ? "—" : avgScore}
@@ -147,9 +134,8 @@ export default function Dashboard() {
                 <div className="stat-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div className="stat-label">At-Risk Nodes</div>
-                        <AlertTriangle size={16} color={atRisk > 0 ? "var(--danger)" : "var(--success)"} />
                     </div>
-                    <div className="stat-value" style={{ color: atRisk > 0 ? "var(--danger)" : "var(--success)" }}>
+                    <div className="stat-value" style={{ color: atRisk > 0 ? "var(--text-primary)" : "var(--text-muted)" }}>
                         {loading ? "—" : atRisk}
                     </div>
                     <div className="stat-sub">Below {ALERT_THRESHOLD} threshold</div>
@@ -157,7 +143,6 @@ export default function Dashboard() {
                 <div className="stat-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div className="stat-label">Total Volume</div>
-                        <History size={16} color="var(--text-muted)" />
                     </div>
                     <div className="stat-value">{loading ? "—" : totalFeedback.toLocaleString()}</div>
                     <div className="stat-sub">Feedback entries</div>
@@ -167,7 +152,6 @@ export default function Dashboard() {
             {!loading && !error && chartData.length > 0 && (
                 <div className="card" style={{ marginBottom: 48 }}>
                     <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <BarChart3 size={14} />
                         Sentiment Distribution — Lowest Performers
                     </div>
                     <div className="chart-wrapper">
@@ -208,10 +192,9 @@ export default function Dashboard() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
                     <div className="card-title" style={{ margin: 0 }}>Fleet Registry</div>
                     <div style={{ position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
                             className="input"
-                            style={{ maxWidth: 300, paddingLeft: 40 }}
+                            style={{ maxWidth: 300 }}
                             placeholder="Filter by identifier..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}

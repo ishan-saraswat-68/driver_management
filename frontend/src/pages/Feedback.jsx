@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -95,13 +95,12 @@ export default function Feedback() {
                     {submitting ? (
                         <><Loader2 size={18} className="spin" /> Submitting...</>
                     ) : (
-                        <><Send size={18} /> Submit Feedback</>
+                        "Submit Feedback"
                     )}
                 </button>
 
                 {toast && (
                     <div className={`toast toast-${toast.type}`} style={{ marginTop: 24 }}>
-                        {toast.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
                         {toast.msg}
                     </div>
                 )}

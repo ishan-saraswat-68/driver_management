@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Lock, Mail, Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
-    const { signIn, role } = useAuth();
+    const { signIn } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -39,9 +39,7 @@ export default function Login() {
             <div className="login-card">
                 {/* Logo */}
                 <div className="login-logo">
-                    <div className="logo-icon">
-                        <Zap size={22} color="white" fill="white" />
-                    </div>
+                    <div className="logo-icon"></div>
                     <div>
                         <div className="login-brand">SentimentIQ</div>
                         <div className="login-tagline">Driver Intelligence Platform</div>
@@ -92,7 +90,6 @@ export default function Login() {
 
                     {error && (
                         <div className="login-error">
-                            <AlertCircle size={15} />
                             {error}
                         </div>
                     )}

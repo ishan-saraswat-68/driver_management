@@ -9,7 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import "./index.css";
 
 function AppShell() {
-  const { user, role, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
