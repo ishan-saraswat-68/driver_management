@@ -1,11 +1,3 @@
-"""
-processing_tasks.py
-────────────────────
-Background task worker. Runs in FastAPI's BackgroundTasks thread pool.
-Thread-safe: services are stateless/DB-backed; only AlertService uses a lock.
-Retry logic wraps DB operations to handle transient Supabase errors.
-"""
-
 import time
 import threading
 from app.services.sentiment_service import SentimentService
@@ -14,21 +6,16 @@ from app.services.alert_service import AlertService
 from app.config import supabase
 from app.logger import logger
 
-# ─── Service singletons ───────────────────────────────────────────────────────
-# These are safe to share: SentimentService is read-only (VADER),
-# DriverService & AlertService use only DB calls (no shared in-memory state
-# except AlertService's internal lock which is already thread-safe).
+# Service singletons
 _sentiment_service = SentimentService()
 _driver_service = DriverService()
 _alert_service = AlertService()
 
-# ─── Retry config ─────────────────────────────────────────────────────────────
 MAX_RETRIES = 3
-RETRY_DELAY = 0.5   # seconds between retries
+RETRY_DELAY = 0.5
 
 
 def _retry(fn, *args, **kwargs):
-    """Call fn(*args, **kwargs) with up to MAX_RETRIES attempts."""
     last_exc = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -36,66 +23,47 @@ def _retry(fn, *args, **kwargs):
         except Exception as e:
             last_exc = e
             if attempt < MAX_RETRIES:
-                time.sleep(RETRY_DELAY * attempt)   # exponential back-off
+                time.sleep(RETRY_DELAY * attempt)
     raise last_exc
 
 
 def process_feedback(feedback):
-    """
-    Background worker: called by FastAPI BackgroundTasks after API responds.
-    Thread-safe — each invocation is independent except for AlertService lock.
-
-    Flow:
-      1. Preprocess + analyze sentiment
-      2. Persist feedback row (with retry)
-      3. Update driver's EMA score (with retry)
-      4. Check and fire alerts (spam-protected internally)
-    """
     driver_id = feedback.driver_id
 
     try:
-        # ── 1. Sentiment Analysis ─────────────────────────────────────────
-        sentiment_result = _sentiment_service.analyze(feedback.text)
-        score   = sentiment_result["score"]        # 0–5 normalized
-        raw     = sentiment_result["raw_score"]    # VADER -1..+1
-        label   = sentiment_result["label"]
+        # 1. Analyze sentiment
+        result = _sentiment_service.analyze(feedback.text)
+        score = result["score"]
+        raw   = result["raw_score"]
+        label = result["label"]
 
-        logger.info(
-            f"[{driver_id}] Sentiment — label={label}, "
-            f"score={score:.3f}/5 (raw={raw:+.3f})"
-        )
+        logger.info(f"[{driver_id}] label={label}, score={score:.3f}/5 (raw={raw:+.3f})")
 
-        # ── 2. Store feedback row (retry on transient DB error) ───────────
-        def _insert_feedback():
+        # 2. Save feedback row
+        def _insert():
             supabase.table("feedback").insert({
                 "driver_id":            driver_id,
                 "trip_id":              feedback.trip_id,
                 "text":                 feedback.text,
-                "sentiment":            score,       # normalized 0–5
+                "sentiment":            score,
                 "sentiment_label":      label,
                 "entity_type":          feedback.entity_type,
                 "external_feedback_id": feedback.external_feedback_id,
             }).execute()
 
-        _retry(_insert_feedback)
+        _retry(_insert)
 
-        # ── 3. Update driver EMA (retry on transient DB error) ────────────
+        # 3. Update EMA score
         updated_score = _retry(
             _driver_service.update_driver_score,
             driver_id=driver_id,
             new_score=score
         )
 
-        logger.info(f"[{driver_id}] EMA score updated → {updated_score:.3f}/5")
+        logger.info(f"[{driver_id}] EMA → {updated_score:.3f}/5")
 
-        # ── 4. Alert check (spam-protected by AlertService) ───────────────
-        _alert_service.check_and_alert(
-            driver_id=driver_id,
-            score=updated_score
-        )
+        # 4. Alert if below threshold
+        _alert_service.check_and_alert(driver_id=driver_id, score=updated_score)
 
     except Exception as e:
-        logger.error(
-            f"[{driver_id}] Background processing failed after {MAX_RETRIES} retries: {e}",
-            exc_info=True
-        )
+        logger.error(f"[{driver_id}] Failed: {e}", exc_info=True)
