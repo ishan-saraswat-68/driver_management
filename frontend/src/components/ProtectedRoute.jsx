@@ -1,10 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-/**
- * Wraps a component and redirects to /login if not authenticated.
- * If allowedRoles is provided, also enforces role-based access.
- */
+
 export default function ProtectedRoute({ children, allowedRoles }) {
     const { user, role, loading } = useAuth();
 

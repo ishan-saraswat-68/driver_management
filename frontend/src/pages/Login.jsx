@@ -28,9 +28,7 @@ export default function Login() {
             return;
         }
 
-        // Redirect based on role (role is fetched in AuthContext after sign-in)
-        // We use a small delay to let the role fetch complete
-        // The AuthContext onAuthStateChange will update the role
+        
         navigate("/");
     };
 
