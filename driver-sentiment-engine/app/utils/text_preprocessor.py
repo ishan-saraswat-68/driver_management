@@ -1,6 +1,5 @@
 """
 text_preprocessor.py
-─────────────────────
 Handles: emojis → sentiment hints, slang normalization,
          whitespace cleanup, and basic typo resilience.
 """
@@ -8,8 +7,8 @@ Handles: emojis → sentiment hints, slang normalization,
 import re
 import unicodedata
 
-# ─── Emoji → semantic replacement ───────────────────────────────────────────
-# Map Unicode emoji chars to descriptive words VADER understands.
+
+# emoji to descriptive words
 EMOJI_MAP = {
     "😊": "happy",
     "😀": "great",
@@ -40,12 +39,12 @@ EMOJI_MAP = {
     "🤮": "disgusting",
     "🚨": "emergency",
     "⚠️": "warning",
-    "🔥": "amazing",   # ride-hailing context: "🔥 driver" = great
+    "🔥": "amazing",   
     "❤️": "love",
     "💕": "wonderful",
 }
 
-# ─── Common ride-hailing slang → expanded forms ──────────────────────────────
+#slang → expanded form 
 SLANG_MAP = {
     r"\bgr8\b": "great",
     r"\bgo0d\b": "good",
@@ -62,7 +61,7 @@ SLANG_MAP = {
     r"\bwasted\b": "drunk",
     r"\bdrunk af\b": "extremely drunk",
     r"\bchill\b": "calm",
-    r"\bbro\b": "",       # filler, remove
+    r"\bbro\b": "",       
     r"\bbruh\b": "",
     r"\bfam\b": "",
     r"\bngl\b": "not gonna lie",
@@ -99,14 +98,14 @@ def preprocess(text: str) -> str:
     for emoji_char, replacement in EMOJI_MAP.items():
         text = text.replace(emoji_char, f" {replacement} ")
 
-    # 2. Unicode normalize — NFKC collapses ligatures, fullwidth chars etc.
+    # 2. Unicode normalize 
     text = unicodedata.normalize("NFKC", text)
 
-    # 3. Expand slang (case-insensitive)
+    # 3. Expand slang 
     for pattern, replacement in SLANG_MAP.items():
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
-    # 4. Strip excessive punctuation repeats: "!!!!" → "!"
+    # 4. punctuation repeats: "!!!!" → "!"
     text = re.sub(r"([!?.]){2,}", r"\1", text)
 
     # 5. Collapse whitespace
